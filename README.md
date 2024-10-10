@@ -52,3 +52,26 @@ python3 game.py
 - **S**: Move down
 - **D**: Move right
 - **Q**: Quit the game
+
+
+## Known Issue on Windows
+
+There is a known issue when running the game on Windows due to the `curses.addch()` function not supporting multi-byte characters such as emojis (e.g., 🍎). This function in Windows expects a single character (ASCII) or byte
+
+If you encounter this issue, replace the emoji used for the apple and snake with a single ASCII character. For example:
+
+In the code, replace these lines:
+
+```bash
+apple = "\N{RED APPLE}"
+snake = "\N{LARGE BLUE CIRCLE}"
+```
+
+With:
+
+```bash
+apple = "@"
+snake = "O"
+```
+
+This workaround ensures the game runs smoothly on Windows.
