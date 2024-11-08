@@ -17,106 +17,106 @@ stdscr.keypad(True)
 lines = curses.LINES - 1
 cols = curses.COLS - 1
 world = [] # 2D array representing the game world
-players = [[20, 30]]
+snake_segments = [[20, 30]]
 food_row = food_col = 0
 keys = ["d"]
 c = 0
-moves = [[0, 0]]
+previous_positions = [[0, 0]]
 apple = "\N{RED APPLE}"
-snake = "\N{LARGE BLUE CIRCLE}"
+snake = "*"
 
 
-#function to position new part of the snake's body
-def locate_new_player():
-    global players, c, keys
+# update the position  of the new segment added to the snake based on the current direction
+def locate_new_segment():
+    global snake_segments, c, keys
     # update snake position based on current direction
     if c == "a" or keys[-1] == "a":
-        players[-1][0] = players[0][0]
-        players[-1][1] = players[0][1] + 5
+        snake_segments[-1][0] = snake_segments[0][0]
+        snake_segments[-1][1] = snake_segments[0][1] + 5
     elif c == "s" or keys[-1] == "s":
-        players[-1][0] = players[0][0] - 5
-        players[-1][1] = players[0][1]
+        snake_segments[-1][0] = snake_segments[0][0] - 5
+        snake_segments[-1][1] = snake_segments[0][1]
     elif c == "d" or keys[-1] == "d":
-        players[-1][0] = players[0][0]
-        players[-1][1] = players[0][1] - 5
+        snake_segments[-1][0] = snake_segments[0][0]
+        snake_segments[-1][1] = snake_segments[0][1] - 5
     elif c == "w" or keys[-1] == "w":
-        players[-1][0] = players[0][0] + 5
-        players[-1][1] = players[0][1]
+        snake_segments[-1][0] = snake_segments[0][0] + 5
+        snake_segments[-1][1] = snake_segments[0][1]
 
         
 # function to initialize food location and grow the snake
-def init_food_player():
-    global players, food_col, food_row
-    if players[0][1] == food_col and players[0][0] == food_row:
+def init_food_and_extend_snake():
+    global snake_segments, food_col, food_row
+    if snake_segments[0][1] == food_col and snake_segments[0][0] == food_row:
 
         #randomly place new food
         food_col = random.randint(3, cols - 3) 
         food_row = random.randint(3, lines - 3)
         
         #add new part to the snake
-        players.append([0, 0])
-        locate_new_player()
+        snake_segments.append([0, 0])
+        locate_new_segment()
    
 
 # move all parts of snake body
-def move_all_body():
-    global players, moves
+def update_snake_body():
+    global snake_segments, previous_positions
 
-    # update the body of the snake based on previous moves
-    for i in range(len(players)-1, 0, -1):
+    # update the body of the snake based on previous previous_positions
+    for i in range(len(snake_segments)-1, 0, -1):
         if i > 1:
-            players[i][0] = players[i-1][0]
-            players[i][1] = players[i-1][1]
+            snake_segments[i][0] = snake_segments[i-1][0]
+            snake_segments[i][1] = snake_segments[i-1][1]
 
     # move the head of the snake
-    if len(players) >= 2:
-        players[1][0] = moves[-1][0]
-        players[1][1] = moves[-1][1]
+    if len(snake_segments) >= 2:
+        snake_segments[1][0] = previous_positions[-1][0]
+        snake_segments[1][1] = previous_positions[-1][1]
 
 
 # continue moving the snake based on the last pressed key
 def continue_move():
-    global keys, players, moves
+    global keys, snake_segments, previous_positions
     
-    moves[0][0] = players[0][0]
-    moves[0][1] = players[0][1]
+    previous_positions[0][0] = snake_segments[0][0]
+    previous_positions[0][1] = snake_segments[0][1]
 
     if keys[-1] == "a":
-        players[0][1] -= 1
+        snake_segments[0][1] -= 1
     elif keys[-1] == "s":
-        players[0][0] += 1
+        snake_segments[0][0] += 1
     elif keys[-1] == "d":
-        players[0][1] += 1
+        snake_segments[0][1] += 1
     elif keys[-1] == "w":
-        players[0][0] -= 1
+        snake_segments[0][0] -= 1
  
-    init_food_player()
-    move_all_body()
+    init_food_and_extend_snake()
+    update_snake_body()
     
 
 # move the snake based on the current input    
 def move():
-    global players, c, moves
+    global snake_segments, c, previous_positions
     
-    moves[0][0] = players[0][0]
-    moves[0][1] = players[0][1]
+    previous_positions[0][0] = snake_segments[0][0]
+    previous_positions[0][1] = snake_segments[0][1]
     
     if c == "a":
-        players[0][1] -= 1
+        snake_segments[0][1] -= 1
     elif c == "s":
-        players[0][0] += 1
+        snake_segments[0][0] += 1
     elif c == "d":
-        players[0][1] += 1
+        snake_segments[0][1] += 1
     elif c == "w":
-        players[0][0] -= 1
+        snake_segments[0][0] -= 1
 
-    init_food_player()
-    move_all_body()
+    init_food_and_extend_snake()
+    update_snake_body()
 
     
 # initialize game world and food
 def init():
-    global players, food_row, food_col
+    global snake_segments, food_row, food_col
 
     # create a world
     for l in range(lines):
@@ -135,14 +135,14 @@ def draw():
         for j in range(cols):
             stdscr.addch(i, j, world[i][j])   
     #showing snake
-    for i in players:
+    for i in snake_segments:
         stdscr.addch(i[0], i[1], "*")
 
     #showing food
     stdscr.addch(food_row, food_col, apple)
 
     #display score
-    stdscr.addstr(0, 0, f"{apple} = {len(players) - 1}", curses.A_STANDOUT)
+    stdscr.addstr(0, 0, f"{apple} = {len(snake_segments) - 1}", curses.A_STANDOUT)
 
     stdscr.refresh()             
 
@@ -162,14 +162,14 @@ def start():
 # end the game if snake hits the walls
 playing = True
 def finish_game():
-    global players, playing
-    if players[0][1] == cols:
+    global snake_segments, playing
+    if snake_segments[0][1] == cols:
         playing = False    
-    elif players[0][1] == 0:
+    elif snake_segments[0][1] == 0:
         playing = False    
-    elif players[0][0] == lines:
+    elif snake_segments[0][0] == lines:
         playing = False    
-    elif players[0][0] == 0:
+    elif snake_segments[0][0] == 0:
         playing = False 
 
 
